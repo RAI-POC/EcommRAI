@@ -1,0 +1,228 @@
+<html>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/funnel.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<div id='container' ></div>
+<button id="plain">Plain</button>
+<button id="inverted">Inverted</button>
+<button id="polar">Polar</button>
+
+</br></br></br></br></br></br>
+<div id='container1'></div></br></br></br></br></br></br>
+<div id='container2'></div></br></br></br></br></br></br>
+<div id='container3'></div></br></br></br></br></br></br>
+
+<script>
+$(document).ready(function () {
+	 console.log( "ready!" );
+	    var socket =  io.connect();
+		var data;
+
+	socket.on('message', function(data){ 
+	 console.log("Hello world!" +data);
+
+	 data = JSON.stringify(data);
+	data = JSON.parse(data);
+   
+  placedVal =  data.placed; 
+	acknowledgedVal =  data.acknowledged;
+    pickedVal =  data.picked;
+	shippedOrdeliveredVal =  data.shippedOrdelivered;
+	cancelledVal =  data.cancelled;	
+	
+	StoreNum = data.StoreNum;
+	PickUpCnt =  data.PickUpCnt;
+	PickUpTtl =  data.PickUpTtl;
+	deliveryCnt =  data.deliveryCnt;
+	DeliveryTt =  data.DeliveryTtl;
+	TotalOrderCnt =  PickUpCnt+deliveryCnt;
+	TotalOrderTtl = PickUpTtl+DeliveryTt;
+	
+	textToDis=  '<b>'+'Real Time dashboard for store number '+StoreNum+'</b>'+'<br>'+'<br>';
+	month= new Date().getMonth()+1;
+	date= month+'/' +new Date().getDate()+'/'+new Date().getFullYear()+ ' '+new Date().getHours()+':'+new Date().getMinutes();
+	textToDispaly1 = 'Total Orders received as of  '+ date+ ' are :'+'<b>'+TotalOrderCnt+'</b>';
+	textToDispaly2 =  'Total Sales happened on  '+ date + ' are :'+'<b>'+TotalOrderTtl+'</b>';
+	textToDispaly = textToDis+'</br>'+'</br>'+textToDispaly1 +'<br>'+ textToDispaly2;
+  //});
+  
+var chart = Highcharts.chart('container', {
+    title: {
+        text: [textToDispaly]
+    },
+
+    subtitle: {
+        text: 'OrderCount Categorized by  Status'
+    },
+
+    xAxis: {
+        categories: ['Placed', 'Acknowledged', 'Picked','Shipped/Delivered','Cancelled']
+    },
+
+    series: [{
+        type: 'column',
+		name:'status',
+        colorByPoint: true,
+        data: [placedVal,acknowledgedVal,pickedVal,shippedOrdeliveredVal,cancelledVal],
+        showInLegend: true
+    }]
+
+});
+
+$('#plain').click(function () {
+    chart.update({
+        chart: {
+            inverted: false,
+            polar: false
+        },
+        subtitle: {
+            text: 'OrderCount Categorized by  Status'
+        }
+    });
+});
+
+$('#inverted').click(function () {
+    chart.update({
+        chart: {
+            inverted: true,
+            polar: false
+        },
+        subtitle: {
+            text: 'OrderCount Categorized by  Status'
+        }
+    });
+});
+
+$('#polar').click(function () {
+    chart.update({
+        chart: {
+            inverted: false,
+            polar: true
+        },
+        subtitle: {
+            text: 'OrderCount Categorized by  Status'
+        }
+    });
+});
+
+});
+
+
+
+socket.on('message', function(data){ 
+	 console.log("Hello world!" +data);
+
+	 data = JSON.stringify(data);
+	data = JSON.parse(data);
+	productName1 =  data.productName1;
+	productName2 =  data.productName2;
+	productName3 =  data.productName3;
+	productCnt1 =  data.productCnt1;
+	productCnt2 =  data.productCnt2;
+	productCnt3 =  data.productCnt3;
+Highcharts.chart('container1', {
+    chart: {
+        type: 'funnel'
+    },
+    title: {
+        text: 'Top 3 Item Sold'
+    },
+    plotOptions: {
+        series: {
+            dataLabels: {
+                enabled: true,
+                format: '<b>{point.name}</b> ({point.y})',
+                color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black',
+                softConnector: true
+            },
+            center: ['50%', '50%'],
+            neckWidth: '10%',
+            neckHeight: '15%',
+            width: '45%'
+        }
+    },
+    legend: {
+        enabled: true
+    },
+    series: [{
+        name: 'Top 3 products',
+        data: [
+            [productName1, productCnt1],
+            [productName2, productCnt2],
+            [productName3, productCnt3]
+        ]
+    }]
+});
+});
+
+socket.on('message', function(data){ 
+	 console.log("Hello world!" +data);
+
+	 data = JSON.stringify(data);
+	data = JSON.parse(data);
+  
+	PickUpCnt =  data.PickUpCnt;
+	PickUpTtl =  data.PickUpTtl;
+	deliveryCnt =  data.deliveryCnt;
+	DeliveryTt =  data.DeliveryTtl;
+	TotalOrderCnt =  PickUpCnt+deliveryCnt;
+	TotalOrderTtl = PickUpTtl+DeliveryTt;
+Highcharts.chart('container2', {
+    title: {
+        text: 'PickUp Vs Delivery Orders'
+    },
+    xAxis: {
+        categories: ['PickUp', 'Delivery']
+    },
+    series: [{
+        type: 'column',
+		name:'Count',
+        data: [PickUpCnt,deliveryCnt],
+		colorByPoint: true,
+		 pointWidth: 100
+    }]
+});
+});
+
+
+socket.on('message', function(data){ 
+	 console.log("Hello world!" +data);
+
+	 data = JSON.stringify(data);
+	data = JSON.parse(data);
+  
+	OrdrCntCrss1Hr =  data.OrdrCntCrss1Hr;
+	OrdrCntCrss2Hr =  data.OrdrCntCrss2Hr;
+	OrdrCntCrss3Hr =  data.OrdrCntCrss3Hr;
+	OrdrCntCrss4Hr =  data.OrdrCntCrss4Hr;
+	OrdrCntCrss5Hr =  data.OrdrCntCrss5Hr;	
+Highcharts.chart('container3', {
+    title: {
+        text: 'SLA of orders acknowledged but not picked'
+    },
+    xAxis: {
+        categories: ['1 hr', '2 hr', '3 hr', '4 hr', '>5 hr']
+    },
+    series: [{
+        type: 'spline',
+		name:'SLA',
+        data: [OrdrCntCrss1Hr, OrdrCntCrss2Hr, OrdrCntCrss3Hr, OrdrCntCrss4Hr, OrdrCntCrss5Hr],
+        marker: {
+            lineWidth: 1,
+            lineColor: Highcharts.getOptions().colors[3],
+            fillColor: 'white'
+        }
+    }]
+});
+
+});
+
+ });
+
+</script>
+</script>
+</html>
